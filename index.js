@@ -2,7 +2,10 @@
 const createHtmlElement = require('create-html-element');
 
 // Capture the whole URL in group 1 to keep `String#split()` support
+// Rename to defaultUrlRegex
 const urlRegex = () => (/((?<!\+)(?:https?(?::\/\/))(?:www\.)?(?:[a-zA-Z\d-_.]+(?:(?:\.|@)[a-zA-Z\d]{2,})|localhost)(?:(?:[-a-zA-Z\d:%_+.~#!?&//=@]*)(?:[,](?![\s]))*)*)/g);
+
+// urlRegex = urlRegex ? urlRegex : defaultUrlRegex
 
 // Get `<a>` element as string
 const linkify = (href, options) => createHtmlElement({
@@ -37,6 +40,7 @@ const getAsDocumentFragment = (string, options) => {
 };
 
 module.exports = (string, options) => {
+	// Add urlRegex in options. This is a custom regex to use in linkify without altering the code
 	options = {
 		attributes: {},
 		type: 'string',
