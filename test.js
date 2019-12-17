@@ -142,3 +142,13 @@ test('supports localhost URLs', t => {
 	t.is(linkifyUrls('http://localhost'), '<a href="http://localhost">http://localhost</a>');
 	t.is(linkifyUrls('http://localhost/foo/bar'), '<a href="http://localhost/foo/bar">http://localhost/foo/bar</a>');
 });
+
+test('supports a custom regex option', t => {
+	t.is(linkifyUrls('http://boom.com', {
+		customRegex: /http:\/\/boom.com/
+	}), '<a href="http://boom.com">http://boom.com</a>');
+
+	t.is(linkifyUrls('http://boom.com', {
+		customRegex: /should not match anything/
+	}), 'http://boom.com');
+});

@@ -2,14 +2,12 @@
 const createHtmlElement = require('create-html-element');
 
 // Capture the whole URL in group 1 to keep `String#split()` support
-// Rename to defaultUrlRegex
-const urlRegex = () => (/((?<!\+)(?:https?(?::\/\/))(?:www\.)?(?:[a-zA-Z\d-_.]+(?:(?:\.|@)[a-zA-Z\d]{2,})|localhost)(?:(?:[-a-zA-Z\d:%_+.~#!?&//=@]*)(?:[,](?![\s]))*)*)/g);
-
-// urlRegex = urlRegex ? urlRegex : defaultUrlRegex
+const defaultUrlRegex = () => (/((?<!\+)(?:https?(?::\/\/))(?:www\.)?(?:[a-zA-Z\d-_.]+(?:(?:\.|@)[a-zA-Z\d]{2,})|localhost)(?:(?:[-a-zA-Z\d:%_+.~#!?&//=@]*)(?:[,](?![\s]))*)*)/g);
 
 // Get `<a>` element as string
 const linkify = (href, options) => createHtmlElement({
 	name: 'a',
+	customRegex: null,
 	attributes: {
 		href: '',
 		...options.attributes,
@@ -23,12 +21,12 @@ const linkify = (href, options) => createHtmlElement({
 // Get DOM node from HTML
 const domify = html => document.createRange().createContextualFragment(html);
 
-const getAsString = (string, options) => {
-	return string.replace(urlRegex(), match => linkify(match, options));
+const getAsString = (string, urlRegex, options) => {
+	return string.replace(urlRegex, match => linkify(match, options));
 };
 
-const getAsDocumentFragment = (string, options) => {
-	return string.split(urlRegex()).reduce((fragment, text, index) => {
+const getAsDocumentFragment = (string, urlRegex, options) => {
+	return string.split(urlRegex).reduce((fragment, text, index) => {
 		if (index % 2) { // URLs are always in odd positions
 			fragment.append(domify(linkify(text, options)));
 		} else if (text.length > 0) {
@@ -43,16 +41,25 @@ module.exports = (string, options) => {
 	// Add urlRegex in options. This is a custom regex to use in linkify without altering the code
 	options = {
 		attributes: {},
+		customRegex: null,
 		type: 'string',
 		...options
 	};
 
+	if (!options.customRegex) {
+		options.customRegex = defaultUrlRegex();
+	}
+
+	if (typeof (options.customRegex) === 'string') {
+		options.customRegex = new RegExp(options.customRegex);
+	}
+
 	if (options.type === 'string') {
-		return getAsString(string, options);
+		return getAsString(string, options.customRegex, options);
 	}
 
 	if (options.type === 'dom') {
-		return getAsDocumentFragment(string, options);
+		return getAsDocumentFragment(string, options.customRegex, options);
 	}
 
 	throw new Error('The type option must be either `dom` or `string`');
